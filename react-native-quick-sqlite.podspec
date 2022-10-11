@@ -26,9 +26,16 @@ Pod::Spec.new do |s|
   s.dependency "React"
   s.dependency "React-Core"
 
-  if ENV['QUICK_SQLITE_USE_PHONE_VERSION'] == '1' then
-    s.exclude_files = "cpp/sqlite3.c", "cpp/sqlite3.h"
-    s.library = "sqlite3"
+  if ENV['SQLCIPHER_VERSION'] != '' then
+    s.exclude_files = "cpp/sqlite/sqlite3.c", "cpp/sqlite/sqlite3.h"
+    s.frameworks = "CoreFoundation", "Security", "Foundation"
+  else
+    if ENV['QUICK_SQLITE_USE_PHONE_VERSION'] == '1' then
+      s.exclude_files = "cpp/sqlite/sqlite3.c", "cpp/sqlite/sqlite3.h", "cpp/sqlcipher/sqlite3.c", "cpp/sqlcipher/sqlite3.h", "cpp/sqlcipher/sqlite3ext.h"
+      s.library = "sqlite3"
+    else
+      s.exclude_files = "cpp/sqlcipher/sqlite3.c", "cpp/sqlcipher/sqlite3.h", "cpp/sqlcipher/sqlite3ext.h"
+    end
   end
   
 end
