@@ -8,6 +8,23 @@ set (PACKAGE_NAME "react-native-quick-sqlite")
 set (BUILD_DIR ${CMAKE_SOURCE_DIR}/build)
 set (RN_SO_DIR ${NODE_MODULES_DIR}/react-native/ReactAndroid/src/main/jni/first-party/react/jni)
 
+if(NOT "${SQLCIPHER_VERSION}" STREQUAL "")
+  SET(OPENSSL_ROOT_DIR ../openssl/${ANDROID_ABI})
+  SET(OPENSSL_LIBRARIES_DIR ${OPENSSL_ROOT_DIR}/lib)
+  SET(OPENSSL_INCLUDE_DIR ${OPENSSL_ROOT_DIR}/include)
+  SET(OPENSSL_LIBRARIES "crypto")
+  LINK_DIRECTORIES(${OPENSSL_LIBRARIES_DIR})
+  
+  SET(SQLITE_PATH ../cpp/sqlcipher)
+  SET(SQLITE_FILES ../cpp/sqlcipher/sqlite3ext.h)
+  SET(SQLCIPHER_FLAGS -DSQLITE_HAS_CODEC -DSQLITE_SOUNDEX -DHAVE_USLEEP=1 -DSQLITE_MAX_VARIABLE_NUMBER=99999 -DSQLITE_TEMP_STORE=3 -DSQLITE_THREADSAFE=1 -DSQLITE_DEFAULT_JOURNAL_SIZE_LIMIT=1048576 -DSQLITE_ENABLE_MEMORY_MANAGEMENT=1 -DSQLITE_ENABLE_LOAD_EXTENSION -DSQLITE_ENABLE_COLUMN_METADATA -DSQLITE_ENABLE_UNLOCK_NOTIFY -DSQLITE_ENABLE_RTREE -DSQLITE_ENABLE_STAT3 -DSQLITE_ENABLE_STAT4 -DSQLITE_ENABLE_JSON1 -DSQLITE_ENABLE_FTS3_PARENTHESIS -DSQLITE_ENABLE_FTS4 -DSQLITE_ENABLE_FTS5 -DSQLCIPHER_CRYPTO_OPENSSL -DSQLITE_ENABLE_DBSTAT_VTAB)
+else()
+  SET(OPENSSL_INCLUDE_DIR "")
+  SET(SQLITE_PATH ../cpp/sqlite)
+  SET(SQLITE_FILES "")
+  SET(SQLCIPHER_FLAGS "")
+endif()
+
 if(${REACT_NATIVE_VERSION} LESS 66)
         set (
                 INCLUDE_JSI_CPP
@@ -23,6 +40,7 @@ file (GLOB LIBFBJNI_INCLUDE_DIR "${BUILD_DIR}/fbjni-*-headers.jar/")
 
 include_directories(
   ../cpp
+  ${SQLITE_PATH}
   "${NODE_MODULES_DIR}/react-native/React"
   "${NODE_MODULES_DIR}/react-native/React/Base"
   "${NODE_MODULES_DIR}/react-native/ReactCommon/jsi"
@@ -34,6 +52,7 @@ include_directories(
   "${NODE_MODULES_DIR}/hermes-engine/android/include/"
   ${INCLUDE_JSI_CPP} # only on older RN versions
   ${INCLUDE_JSIDYNAMIC_CPP} # only on older RN versions
+  ${OPENSSL_INCLUDE_DIR} # required for SQLCipher
 )
 
 add_library(
@@ -43,8 +62,9 @@ add_library(
   ../cpp/sqliteBridge.h
   ../cpp/bindings.cpp
   ../cpp/bindings.h
-  ../cpp/sqlite3.h
-  ../cpp/sqlite3.c
+  "${SQLITE_PATH}/sqlite3.h"
+  "${SQLITE_PATH}/sqlite3.c"
+  ${SQLITE_FILES}
   ../cpp/JSIHelper.h
   ../cpp/JSIHelper.cpp
   ../cpp/ThreadPool.h
@@ -58,11 +78,14 @@ add_library(
 )
 
 add_definitions(
+  ${SQLCIPHER_FLAGS}
   ${SQLITE_FLAGS}
 )
 
 # find fbjni package
 file (GLOB LIBFBJNI_INCLUDE_DIR "${BUILD_DIR}/fbjni-*-headers.jar/")
+
+target_compile_definitions(${PACKAGE_NAME} PRIVATE SQLCIPHER_VERSION="${SQLCIPHER_VERSION}")
 
 target_include_directories(
         ${PACKAGE_NAME}
@@ -80,7 +103,9 @@ target_include_directories(
         "${NODE_MODULES_DIR}/hermes-engine/android/include/"
         ${INCLUDE_JSI_CPP} # only on older RN versions
         ${INCLUDE_JSIDYNAMIC_CPP} # only on older RN versions
+        ${OPENSSL_INCLUDE_DIR} # required for SQLCipher
 )
+
 
 file (GLOB LIBRN_DIR "${BUILD_DIR}/react-native-0*/jni/${ANDROID_ABI}")
 
@@ -123,4 +148,5 @@ target_link_libraries(
         ${REACT_NATIVE_JNI_LIB}
         ${FBJNI_LIB}
         android
+        ${OPENSSL_LIBRARIES} # required for SQLCipher
 )
