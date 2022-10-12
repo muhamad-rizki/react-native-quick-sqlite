@@ -46,7 +46,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       tempDocPath = tempDocPath + "/" + args[1].asString(rt).utf8(rt);
     }
     
-    string dbKey = string("");
+    const char* dbKey = NULL;
     if (count > 2 && !args[2].isUndefined() && !args[2].isNull()){
       if (USE_SQLCIPHER != 1) {
         throw jsi::JSError(rt, "[react-native-quick-sqlite][open] to use database key encryption you should use SQLCipher");
@@ -55,8 +55,8 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       {
         throw jsi::JSError(rt, "[react-native-quick-sqlite][open] database key must be a string");
       }
-      
-      dbKey = args[2].asString(rt).utf8(rt);
+      string key = args[2].asString(rt).utf8(rt);
+      dbKey = key.c_str();
     }
     
     SQLiteOPResult result = sqliteOpenDb(dbName, tempDocPath, dbKey);
@@ -90,7 +90,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       tempDocPath = tempDocPath + "/" + args[3].asString(rt).utf8(rt);
     }
     
-    string* dbKey = NULL;
+    const char* dbKey = NULL;
     if (count > 4 && !args[4].isUndefined() && !args[4].isNull()){
       if (USE_SQLCIPHER != 1) {
         throw jsi::JSError(rt, "[react-native-quick-sqlite][attach] to use database key encryption you should use SQLCipher");
@@ -100,7 +100,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
         throw jsi::JSError(rt, "[react-native-quick-sqlite][attach] database key must be a string");
       }
       string _dbKey = args[4].asString(rt).utf8(rt);
-      dbKey = &_dbKey;
+      dbKey = _dbKey.c_str();
     }
     
     string dbName = args[0].asString(rt).utf8(rt);
