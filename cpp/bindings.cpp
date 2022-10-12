@@ -425,7 +425,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
   module.setProperty(rt, "loadFileAsync", move(loadFileAsync));
   
   rt.global().setProperty(rt, "__QuickSQLiteProxy", move(module));
-  rt.global().setProperty(rt, "__QuickSQLiteCipherVersion", move(SQLCIPHER_VERSION));
+  rt.global().setProperty(rt, "__QuickSQLiteUseCipher", move(USE_SQLCIPHER == 1));
 }
 
 }
