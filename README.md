@@ -37,14 +37,14 @@ If you want to sponsor the development of this library, [get in touch](mailto:os
 ```typescript
 import {open} from 'react-native-quick-sqlite'
 
-const db = open('myDb.sqlite')
+const db = open({ name: 'myDb.sqlite', location: '.', dbKey: 'password' })
 
 // The db object now contains the following methods:
 
 db = {
   close: () => void,
   delete: () => void,
-  attach: (dbNameToAttach: string, alias: string, location?: string) => void,
+  attach: (dbNameToAttach: string, alias: string, location?: string, dbKey:? string) => void,
   detach: (alias: string) => void,
   transaction: (fn: (tx: Transaction) => void) => Promise<void>,
   execute: (query: string, params?: any[]) => QueryResult,
@@ -57,7 +57,32 @@ db = {
   loadFile: (location: string) => FileLoadResult;,
   loadFileAsync: (location: string) => Promise<FileLoadResult>
 }
+
+// To use "dbKey" option you have to enable SQLCipher on apps build
 ```
+
+### Database Encryption
+
+To enable database file encryption, you have to compile this package using SQLCipher.
+
+- For **Android**, add this on `android/build.gradle` file:
+
+```gradle
+buildscript {
+    ext {
+        buildToolsVersion = "30.0.2"
+        minSdkVersion = 21
+        ...
+        useSqlCipher = true // add this
+    }
+```
+
+- For **iOS**, when running `pod-install` add an environment flag:
+
+```
+USE_SQLCIPHER=1 npx pod-install
+```
+- ⚠️ **Caution**: for TypeORM driver still need some adjustment to make it works with db encryption
 
 ### Simple queries
 
