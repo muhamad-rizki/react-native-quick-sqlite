@@ -450,8 +450,19 @@ export const open = (options: {
       alias: string,
       location?: string,
       dbKey?: string
-    ) =>
-      QuickSQLite.attach(options.name, dbNameToAttach, alias, location, dbKey),
+    ) => {
+      let key = dbKey;
+      if (key) {
+        key = key.replace(/\'/g, "''");
+      }
+      return QuickSQLite.attach(
+        options.name,
+        dbNameToAttach,
+        alias,
+        location,
+        key
+      );
+    },
     detach: (alias: string) => QuickSQLite.detach(options.name, alias),
     transaction: (fn: (tx: Transaction) => Promise<void> | void) =>
       QuickSQLite.transaction(options.name, fn),

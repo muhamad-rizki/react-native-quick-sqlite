@@ -13,13 +13,13 @@
 using namespace std;
 using namespace facebook;
 
-SQLiteOPResult sqliteOpenDb(string const dbName, string const docPath, string const dbKey);
+SQLiteOPResult sqliteOpenDb(string const dbName, string const docPath, const char* dbKey);
 
 SQLiteOPResult sqliteCloseDb(string const dbName);
 
 SQLiteOPResult sqliteRemoveDb(string const dbName, string const docPath);
 
-SQLiteOPResult sqliteAttachDb(string const mainDBName, string const docPath, string const databaseToAttach, string const alias, string* const dbKey);
+SQLiteOPResult sqliteAttachDb(string const mainDBName, string const docPath, string const databaseToAttach, string const alias, const char* dbKey);
 
 SQLiteOPResult sqliteDetachDb(string const mainDBName, string const alias);
 
