@@ -70,3 +70,6 @@ lib/
 # Gradle
 android/gradle/
 android/gradle*
+
+# openssl prebuilt lib
+!openssl/**/lib
