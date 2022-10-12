@@ -80,7 +80,7 @@ string get_db_path(string const dbName, string const docPath)
   return docPath + "/" + dbName;
 }
 
-SQLiteOPResult sqliteOpenDb(string const dbName, string const docPath, string const dbKey)
+SQLiteOPResult sqliteOpenDb(string const dbName, string const docPath, const char* dbKey)
 {
   string dbPath = get_db_path(dbName, docPath);
   
@@ -100,8 +100,8 @@ SQLiteOPResult sqliteOpenDb(string const dbName, string const docPath, string co
   else
   {
 #ifdef SQLITE_HAS_CODEC
-    if (!dbKey.empty()){
-      sqlite3_key(db, &dbKey, dbKey.length());
+    if (dbKey != NULL){
+      sqlite3_key(db, dbKey, sizeof(dbKey));
     }
 #endif
     dbMap[dbName] = db;
@@ -135,7 +135,7 @@ SQLiteOPResult sqliteCloseDb(string const dbName)
   };
 }
 
-SQLiteOPResult sqliteAttachDb(string const mainDBName, string const docPath, string const databaseToAttach, string const alias, string* const dbKey)
+SQLiteOPResult sqliteAttachDb(string const mainDBName, string const docPath, string const databaseToAttach, string const alias, const char* dbKey)
 {
   /**
    * There is no need to check if mainDBName is opened because sqliteExecuteLiteral will do that.
@@ -145,7 +145,7 @@ SQLiteOPResult sqliteAttachDb(string const mainDBName, string const docPath, str
   
 #ifdef SQLITE_HAS_CODEC
   if (dbKey != NULL){
-    statement += " KEY '" + *dbKey + "'";
+    statement = statement.append(" KEY '").append(dbKey).append("'");
   }
 #endif
   
