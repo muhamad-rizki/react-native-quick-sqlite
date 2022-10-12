@@ -22,18 +22,18 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
   docPathStr = std::string(docPath);
   auto pool = std::make_shared<ThreadPool>();
   invoker = jsCallInvoker;
-
+  
   auto open = HOSTFN("open", 2) {
     if (count == 0)
     {
       throw jsi::JSError(rt, "[react-native-quick-sqlite][open] database name is required");
     }
-
+    
     if (!args[0].isString())
     {
       throw jsi::JSError(rt, "[react-native-quick-sqlite][open] database name must be a string");
     }
-
+    
     string dbName = args[0].asString(rt).utf8(rt);
     string tempDocPath = string(docPathStr);
     if (count > 1 && !args[1].isUndefined() && !args[1].isNull())
@@ -42,17 +42,30 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       {
         throw jsi::JSError(rt, "[react-native-quick-sqlite][open] database location must be a string");
       }
-
+      
       tempDocPath = tempDocPath + "/" + args[1].asString(rt).utf8(rt);
     }
-
-    SQLiteOPResult result = sqliteOpenDb(dbName, tempDocPath);
-
+    
+    string dbKey = string("");
+    if (count > 2 && !args[2].isUndefined() && !args[2].isNull()){
+      if (USE_SQLCIPHER != 1) {
+        throw jsi::JSError(rt, "[react-native-quick-sqlite][open] to use database key encryption you should use SQLCipher");
+      }
+      if (!args[2].isString())
+      {
+        throw jsi::JSError(rt, "[react-native-quick-sqlite][open] database key must be a string");
+      }
+      
+      dbKey = args[2].asString(rt).utf8(rt);
+    }
+    
+    SQLiteOPResult result = sqliteOpenDb(dbName, tempDocPath, dbKey);
+    
     if (result.type == SQLiteError)
     {
       throw jsi::JSError(rt, result.errorMessage.c_str());
     }
-
+    
     return {};
   });
   
@@ -65,7 +78,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       throw jsi::JSError(rt, "dbName, databaseToAttach and alias must be a strings");
       return {};
     }
-
+    
     string tempDocPath = string(docPathStr);
     if (count > 3 && !args[3].isUndefined() && !args[3].isNull())
     {
@@ -73,20 +86,33 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       {
         throw jsi::JSError(rt, "[react-native-quick-sqlite][attach] database location must be a string");
       }
-
+      
       tempDocPath = tempDocPath + "/" + args[3].asString(rt).utf8(rt);
     }
-
+    
+    string* dbKey = NULL;
+    if (count > 4 && !args[4].isUndefined() && !args[4].isNull()){
+      if (USE_SQLCIPHER != 1) {
+        throw jsi::JSError(rt, "[react-native-quick-sqlite][attach] to use database key encryption you should use SQLCipher");
+      }
+      if (!args[4].isString())
+      {
+        throw jsi::JSError(rt, "[react-native-quick-sqlite][attach] database key must be a string");
+      }
+      string _dbKey = args[4].asString(rt).utf8(rt);
+      dbKey = &_dbKey;
+    }
+    
     string dbName = args[0].asString(rt).utf8(rt);
     string databaseToAttach = args[1].asString(rt).utf8(rt);
     string alias = args[2].asString(rt).utf8(rt);
-    SQLiteOPResult result = sqliteAttachDb(dbName, tempDocPath, databaseToAttach, alias);
-
+    SQLiteOPResult result = sqliteAttachDb(dbName, tempDocPath, databaseToAttach, alias, dbKey);
+    
     if (result.type == SQLiteError)
     {
       throw jsi::JSError(rt, result.errorMessage.c_str());
     }
-
+    
     return {};
   });
   
@@ -99,57 +125,57 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       throw jsi::JSError(rt, "dbName, databaseToAttach and alias must be a strings");
       return {};
     }
-
+    
     string dbName = args[0].asString(rt).utf8(rt);
     string alias = args[1].asString(rt).utf8(rt);
     SQLiteOPResult result = sqliteDetachDb(dbName, alias);
-
+    
     if (result.type == SQLiteError)
     {
       throw jsi::JSError(rt, result.errorMessage.c_str());
     }
-
+    
     return {};
   });
-
+  
   auto close = HOSTFN("close", 1)
   {
     if (count == 0)
     {
       throw jsi::JSError(rt, "[react-native-quick-sqlite][close] database name is required");
     }
-
+    
     if (!args[0].isString())
     {
       throw jsi::JSError(rt, "[react-native-quick-sqlite][close] database name must be a string");
     }
-
+    
     string dbName = args[0].asString(rt).utf8(rt);
-
+    
     SQLiteOPResult result = sqliteCloseDb(dbName);
-
+    
     if (result.type == SQLiteError)
     {
       throw jsi::JSError(rt, result.errorMessage.c_str());
     }
-
+    
     return {};
   });
-
+  
   auto remove = HOSTFN("delete", 2)
   {
     if (count == 0)
     {
       throw jsi::JSError(rt, "[react-native-quick-sqlite][open] database name is required");
     }
-
+    
     if (!args[0].isString())
     {
       throw jsi::JSError(rt, "[react-native-quick-sqlite][open] database name must be a string");
     }
-
+    
     string dbName = args[0].asString(rt).utf8(rt);
-
+    
     string tempDocPath = string(docPathStr);
     if (count > 1 && !args[1].isUndefined() && !args[1].isNull())
     {
@@ -157,21 +183,21 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       {
         throw jsi::JSError(rt, "[react-native-quick-sqlite][open] database location must be a string");
       }
-
+      
       tempDocPath = tempDocPath + "/" + args[1].asString(rt).utf8(rt);
     }
-
-
+    
+    
     SQLiteOPResult result = sqliteRemoveDb(dbName, tempDocPath);
-
+    
     if (result.type == SQLiteError)
     {
       throw jsi::JSError(rt, result.errorMessage.c_str());
     }
-
+    
     return {};
   });
-
+  
   auto execute = HOSTFN("execute", 3)
   {
     const string dbName = args[0].asString(rt).utf8(rt);
@@ -181,10 +207,9 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       const jsi::Value &originalParams = args[2];
       jsiQueryArgumentsToSequelParam(rt, originalParams, &params);
     }
-
+    
     vector<map<string, QuickValue>> results;
     vector<QuickColumnMetadata> metadata;
-
     // Converting results into a JSI Response
     try {
       auto status = sqliteExecute(dbName, query, &params, &results, &metadata);
@@ -201,27 +226,27 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       throw jsi::JSError(rt, e.what());
     }
   });
-
+  
   auto executeAsync = HOSTFN("executeAsync", 3)
   {
     if (count < 3)
     {
       throw jsi::JSError(rt, "[react-native-quick-sqlite][executeAsync] Incorrect arguments for executeAsync");
     }
-
+    
     const string dbName = args[0].asString(rt).utf8(rt);
     const string query = args[1].asString(rt).utf8(rt);
     const jsi::Value &originalParams = args[2];
-
+    
     // Converting query parameters inside the javascript caller thread
     vector<QuickValue> params;
     jsiQueryArgumentsToSequelParam(rt, originalParams, &params);
-
+    
     auto promiseCtr = rt.global().getPropertyAsFunction(rt, "Promise");
     auto promise = promiseCtr.callAsConstructor(rt, HOSTFN("executor", 2) {
       auto resolve = std::make_shared<jsi::Value>(rt, args[0]);
       auto reject = std::make_shared<jsi::Value>(rt, args[1]);
-
+      
       auto task =
       [&rt, dbName, query, params = make_shared<vector<QuickValue>>(params), resolve, reject]()
       {
@@ -250,12 +275,12 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
           });
         }
       };
-
+      
       pool->queueWork(task);
-
+      
       return {};
     }));
-
+    
     return promise;
   });
 
@@ -267,7 +292,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
     {
       throw jsi::JSError(rt, "[react-native-quick-sqlite][executeBatch] - Incorrect parameter count");
     }
-
+    
     const jsi::Value &params = args[1];
     if (params.isNull() || params.isUndefined())
     {
@@ -277,7 +302,7 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
     const jsi::Array &batchParams = params.asObject(rt).asArray(rt);
     vector<QuickQueryArguments> commands;
     jsiBatchParametersToQuickArguments(rt, batchParams, &commands);
-
+    
     auto batchResult = sqliteExecuteBatch(dbName, &commands);
     if (batchResult.type == SQLiteOk)
     {
@@ -298,26 +323,26 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       throw jsi::JSError(rt, "[react-native-quick-sqlite][executeAsyncBatch] Incorrect parameter count");
       return {};
     }
-
+    
     const jsi::Value &params = args[1];
-
+    
     if (params.isNull() || params.isUndefined())
     {
       throw jsi::JSError(rt, "[react-native-quick-sqlite][executeAsyncBatch] - An array of SQL commands or parameters is needed");
       return {};
     }
-
+    
     const string dbName = args[0].asString(rt).utf8(rt);
     const jsi::Array &batchParams = params.asObject(rt).asArray(rt);
-
+    
     vector<QuickQueryArguments> commands;
     jsiBatchParametersToQuickArguments(rt, batchParams, &commands);
-
+    
     auto promiseCtr = rt.global().getPropertyAsFunction(rt, "Promise");
     auto promise = promiseCtr.callAsConstructor(rt, HOSTFN("executor", 2) {
       auto resolve = std::make_shared<jsi::Value>(rt, args[0]);
       auto reject = std::make_shared<jsi::Value>(rt, args[1]);
-
+      
       auto task =
       [&rt, dbName, commands = make_shared<vector<QuickQueryArguments>>(commands), resolve, reject]()
       {
@@ -346,18 +371,18 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
         }
       };
       pool->queueWork(task);
-
+      
       return {};
     }));
-
+    
     return promise;
   });
-
+  
   auto loadFile = HOSTFN("loadFile", 2)
   {
     const string dbName = args[0].asString(rt).utf8(rt);
     const string sqlFileName = args[1].asString(rt).utf8(rt);
-
+    
     const auto importResult = importSQLFile(dbName, sqlFileName);
     if (importResult.type == SQLiteOk)
     {
@@ -380,22 +405,22 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       throw jsi::JSError(rt, "[react-native-quick-sqlite][loadFileAsync] Incorrect parameter count");
       return {};
     }
-
+    
     const string dbName = args[0].asString(rt).utf8(rt);
     const string sqlFileName = args[1].asString(rt).utf8(rt);
-
+    
     auto promiseCtr = rt.global().getPropertyAsFunction(rt, "Promise");
     auto promise = promiseCtr.callAsConstructor(rt, HOSTFN("executor", 2) {
       auto resolve = std::make_shared<jsi::Value>(rt, args[0]);
       auto reject = std::make_shared<jsi::Value>(rt, args[1]);
-
+      
       auto task =
       [&rt, dbName, sqlFileName, resolve, reject]()
       {
         try
         {
           const auto importResult = importSQLFile(dbName, sqlFileName);
-
+          
           invoker->invokeAsync([&rt, result = move(importResult), resolve, reject]
                                {
             if(result.type == SQLiteOk)
@@ -420,14 +445,14 @@ void install(jsi::Runtime &rt, std::shared_ptr<react::CallInvoker> jsCallInvoker
       pool->queueWork(task);
       return {};
     }));
-
+    
     return promise;
   });
-
-
-
+  
+  
+  
   jsi::Object module = jsi::Object(rt);
-
+  
   module.setProperty(rt, "open", move(open));
   module.setProperty(rt, "close", move(close));
   module.setProperty(rt, "attach", move(attach));
