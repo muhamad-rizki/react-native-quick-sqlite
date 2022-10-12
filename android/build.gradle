@@ -55,7 +55,7 @@ def reactProperties = new Properties()
 file("$nodeModules/react-native/ReactAndroid/gradle.properties").withInputStream { reactProperties.load(it) }
 def REACT_NATIVE_VERSION = reactProperties.getProperty("VERSION_NAME").split("\\.")[1].toInteger()
 def SQLITE_FLAGS = rootProject.properties['quickSqliteFlags']
-def SQLCIPHER_VERSION = rootProject.properties['sqlcipherVersion']
+def USE_SQLCIPHER = rootProject.properties['useSqlCipher']
 
 android {
   
@@ -76,7 +76,7 @@ android {
               "-DREACT_NATIVE_VERSION=${REACT_NATIVE_VERSION}",
               "-DNODE_MODULES_DIR=${nodeModules}",
               "-DSQLITE_FLAGS='${SQLITE_FLAGS ? SQLITE_FLAGS : ''}'",
-              "-DSQLCIPHER_VERSION='${SQLCIPHER_VERSION ? SQLCIPHER_VERSION : ''}'"
+              "-DUSE_SQLCIPHER=${USE_SQLCIPHER ? 1 : 0}"
         }
     }
     
