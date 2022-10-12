@@ -25,8 +25,7 @@ Pod::Spec.new do |s|
     :WARNING_CFLAGS => "-Wno-shorten-64-to-32 -Wno-comma -Wno-unreachable-code -Wno-conditional-uninitialized -Wno-deprecated-declarations",
     :USE_HEADERMAP => "No"
   }
-  
-  s.header_mappings_dir = "cpp"
+
   s.source_files = "ios/**/*.{h,hpp,m,mm}", "cpp/**/*.{h,cpp,c}"
   
   s.dependency "React-callinvoker"

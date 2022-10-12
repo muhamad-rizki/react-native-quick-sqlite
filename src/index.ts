@@ -126,14 +126,15 @@ export interface PendingTransaction {
 }
 
 interface ISQLite {
-  open: (dbName: string, location?: string) => void;
+  open: (dbName: string, location?: string, dbKey?: string) => void;
   close: (dbName: string) => void;
   delete: (dbName: string, location?: string) => void;
   attach: (
     mainDbName: string,
     dbNameToAttach: string,
     alias: string,
-    location?: string
+    location?: string,
+    dbKey?: string
   ) => void;
   detach: (mainDbName: string, alias: string) => void;
   transactionAsync: (
@@ -188,8 +189,8 @@ const enhanceQueryResult = (result: QueryResult): void => {
 };
 
 const _open = QuickSQLite.open;
-QuickSQLite.open = (dbName: string, location?: string) => {
-  _open(dbName, location);
+QuickSQLite.open = (dbName: string, location?: string, dbKey?: string) => {
+  _open(dbName, location, dbKey);
 
   locks[dbName] = {
     queue: [],
@@ -414,7 +415,12 @@ export const openDatabase = (
 export interface QuickSQLiteConnection {
   close: () => void;
   delete: () => void;
-  attach: (dbNameToAttach: string, alias: string, location?: string) => void;
+  attach: (
+    dbNameToAttach: string,
+    alias: string,
+    location?: string,
+    dbKey?: string
+  ) => void;
   detach: (alias: string) => void;
   transactionAsync: (fn: (tx: TransactionAsync) => Promise<void>) => void;
   transaction: (fn: (tx: Transaction) => boolean) => void;
@@ -429,14 +435,20 @@ export interface QuickSQLiteConnection {
 export const open = (options: {
   name: string;
   location?: string;
+  dbKey?: string;
 }): QuickSQLiteConnection => {
-  QuickSQLite.open(options.name, options.location);
+  QuickSQLite.open(options.name, options.location, options.dbKey);
 
   return {
     close: () => QuickSQLite.close(options.name),
     delete: () => QuickSQLite.delete(options.name, options.location),
-    attach: (dbNameToAttach: string, alias: string, location?: string) =>
-      QuickSQLite.attach(options.name, dbNameToAttach, alias, location),
+    attach: (
+      dbNameToAttach: string,
+      alias: string,
+      location?: string,
+      dbKey?: string
+    ) =>
+      QuickSQLite.attach(options.name, dbNameToAttach, alias, location, dbKey),
     detach: (alias: string) => QuickSQLite.detach(options.name, alias),
     transactionAsync: (fn: (tx: TransactionAsync) => Promise<void>) =>
       QuickSQLite.transactionAsync(options.name, fn),
@@ -456,6 +468,6 @@ export const open = (options: {
     loadFile: (location: string) =>
       QuickSQLite.loadFile(options.name, location),
     loadFileAsync: (location: string) =>
-      QuickSQLite.loadFileAsync(options.name, location)
+      QuickSQLite.loadFileAsync(options.name, location),
   };
 };
