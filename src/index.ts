@@ -325,6 +325,8 @@ const startNextTransaction = (dbName: string) => {
 //     | |     | |  | |    | |___| |__| | | \ \| |  | |  / ____ \| |    _| |_
 //     |_|     |_|  |_|    |______\____/|_|  \_\_|  |_| /_/    \_\_|   |_____|
 
+// TODO: add dbKey to typeorm option
+
 export interface TypeOrmDBConnection {
   execute: (
     sql: string,
