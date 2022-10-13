@@ -13,7 +13,7 @@
     "android",
     "ios",
     "cpp",
-    "@qsi/react-native-quick-sqlite.podspec",
+    "react-native-quick-sqlite.podspec",
     "!lib/typescript/example",
     "!android/build",
     "!android/.cxx",
