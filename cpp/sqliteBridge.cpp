@@ -101,7 +101,7 @@ SQLiteOPResult sqliteOpenDb(string const dbName, string const docPath, const cha
   {
 #ifdef SQLITE_HAS_CODEC
     if (dbKey != NULL){
-      sqlite3_key(db, dbKey, sizeof(dbKey));
+      sqlite3_key(db, dbKey, strlen(dbKey));
     }
 #endif
     dbMap[dbName] = db;
