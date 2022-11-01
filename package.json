@@ -1,6 +1,6 @@
 {
   "name": "react-native-quick-sqlite",
-  "version": "5.0.1",
+  "version": "5.0.2",
   "description": "Fast SQLite for react-native",
   "main": "lib/commonjs/index",
   "module": "lib/module/index",
@@ -13,6 +13,7 @@
     "android",
     "ios",
     "cpp",
+    "openssl",
     "react-native-quick-sqlite.podspec",
     "!lib/typescript/example",
     "!android/build",
