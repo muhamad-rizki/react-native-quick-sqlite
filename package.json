@@ -13,6 +13,7 @@
     "android",
     "ios",
     "cpp",
+    "openssl",
     "react-native-quick-sqlite.podspec",
     "!lib/typescript/example",
     "!android/build",
