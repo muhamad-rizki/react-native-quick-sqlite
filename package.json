@@ -1,5 +1,5 @@
 {
-  "name": "react-native-quick-sqlite",
+  "name": "@qsi/react-native-quick-sqlite",
   "version": "5.1.0",
   "description": "Fast SQLite for react-native",
   "main": "lib/commonjs/index",
@@ -46,7 +46,7 @@
   },
   "homepage": "https://github.com/ospfranco/react-native-quick-sqlite#readme",
   "publishConfig": {
-    "registry": "https://registry.npmjs.org/"
+    "registry": "https://devops.quadrant-si.id/nexus/repository/npm-hosted/"
   },
   "devDependencies": {
     "@types/jest": "^26.0.0",
