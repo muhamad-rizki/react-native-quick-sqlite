@@ -1,13 +1,10 @@
+const path = require('path');
+const pak = require('../package.json');
+
 module.exports = {
-    dependencies: {
-      'react-native-quick-sqlite': {
-        platforms: {
-          android: {
-            sourceDir: "../../android",
-            packageImportPath: "import com.reactnativequicksqlite.SequelPackage;",
-            packageInstance: "new SequelPackage()"
-          },
-        },
-      },
+  dependencies: {
+    [pak.name]: {
+      root: path.join(__dirname, '..'),
     },
-  };
+  },
+};

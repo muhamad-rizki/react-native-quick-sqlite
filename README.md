@@ -20,6 +20,18 @@ Performance metrics are intentionally not presented, [anecdotic testimonies](htt
 
 **Javascript cannot represent integers larger than 53 bits**, be careful when loading data if it came from other systems. [Read more](https://github.com/ospfranco/react-native-quick-sqlite/issues/16#issuecomment-1018412991).
 
+## Sponsors
+
+This library is sponsored by:
+
+[<img src="https://raw.githubusercontent.com/ospfranco/react-native-quick-sqlite/main/sponsors/stream.png">](https://getstream.io/try-for-free/?utm_source=ospfranco&utm_medium=Github_Repo_Content_Ad&utm_content=Developer&utm_campaign=ospfranco_December2022_Trial_klmh22)
+
+_Build cross-platform messaging experiences with Stream Chat API. Sign up for Stream's 30 day trial for free!_
+
+[_Try the React Native Chat Tutorial 💬_](https://getstream.io/chat/sdk/react-native/?utm_source=ospfranco&utm_medium=Github_Repo_Content_Ad&utm_content=Developer&utm_campaign=ospfranco_December2022_Trial_klmh22)
+
+If you want to sponsor the development of this library, [get in touch](mailto:ospfranco@protonmail.com).
+
 ## API
 
 ```typescript
@@ -34,8 +46,7 @@ db = {
   delete: () => void,
   attach: (dbNameToAttach: string, alias: string, location?: string, dbKey:? string) => void,
   detach: (alias: string) => void,
-  transactionAsync: (fn: (tx: TransactionAsync) => Promise<void>) => void,
-  transaction: (fn: (tx: Transaction) => void) => void,
+  transaction: (fn: (tx: Transaction) => void) => Promise<void>,
   execute: (query: string, params?: any[]) => QueryResult,
   executeAsync: (
     query: string,
@@ -102,31 +113,32 @@ try {
 
 ### Transactions
 
-Transactions are supported. Throwing an error inside the callback will ROLLBACK the transaction.
+Throwing an error inside the callback will ROLLBACK the transaction.
 
-JSI bindings are fast but there is still some overhead calling `execute` for single queries, if you want to execute a large set of commands as fast as possible you should use the `executeBatch` method, it wraps all the commands in a transaction, but has less overhead.
+If you want to execute a large set of commands as fast as possible you should use the `executeBatch` method, it wraps all the commands in a transaction, and has less overhead.
+
+It is strongly recommended that you try/catch the code inside of the transactions since it will be internally catched if you don't handle it and nothing will be thrown into the parent application!
 
 ```typescript
-QuickSQLite.transaction('myDatabase', (tx) => {
+await QuickSQLite.transaction('myDatabase', (tx) => {
   const { status } = tx.execute(
     'UPDATE sometable SET somecolumn = ? where somekey = ?',
     [0, 1]
   );
 
-  throw new Error('Random Error!'); // Will ROLLBACK transaction
-});
-```
-
-Async transactions are also possible:
-
-```ts
-QuickSQLite.transactionAsync('myDatabase', async (tx) => {
-  tx.execute('UPDATE sometable SET somecolumn = ? where somekey = ?', [0, 1]);
-
-  await tx.executeAsync(
+  // offload from JS thread
+  await tx.executeAsync = tx.executeAsync(
     'UPDATE sometable SET somecolumn = ? where somekey = ?',
     [0, 1]
   );
+
+  // Any uncatched error ROLLBACK transaction
+  throw new Error('Random Error!');
+
+  // You can manually commit or rollback
+  tx.commit();
+  // or
+  tx.rollback();
 });
 ```
 
@@ -242,22 +254,68 @@ QUICK_SQLITE_USE_PHONE_VERSION=1 npx pod-install
 
 On Android it is not possible to link (using C++) the embedded SQLite. It is also a bad idea due to vendor changes, old android bugs, etc. Unfortunately, this means this library will add some mbs to your app size.
 
-## Use TypeORM
+## TypeORM
 
-You can use this library as a driver for [TypeORM](https://github.com/typeorm/typeorm), when initializing the connection use:
+This library is pretty barebones, you can write all your SQL queries manually but for any large application a ORM is **strongly** recommended.
+
+You can use this library as a driver for [TypeORM](https://github.com/typeorm/typeorm). However there are some incompatibilities you need to take care of first.
+
+Starting on Node14 all files that need to be accessed by third party modules need to be explicitly declared, typeorm does not export it's `package.json` which is needed by Metro, we need to expose it and make those changes "permanent" by using [patch-package](https://github.com/ds300/patch-package):
+
+```json
+// package.json stuff up here
+"exports": {
+    "./package.json": "./package.json", // ADD THIS
+    ".": {
+      "types": "./index.d.ts",
+// The rest of the package json here
+```
+
+After you have applied that change, do:
+
+```sh
+yarn patch-package --exclude 'nothing' typeorm
+```
+
+Now every time you install your node_modules that line will be added.
+
+Next we need to trick typeorm to resolve the dependency of `react-native-sqlite-storage` to `react-native-quick-sqlite`, on your `babel.config.js` add the following:
+
+```js
+plugins: [
+  // w/e plugin you already have
+  ...,
+  [
+    'module-resolver',
+    {
+      alias: {
+        "react-native-sqlite-storage": "react-native-quick-sqlite"
+      },
+    },
+  ],
+]
+```
+
+You will need to install the babel `module-resolver` plugin:
+
+```sh
+yarn add babel-plugin-module-resolver
+```
+
+After all is done, you will now be able to start the app without any metro/babel errors (you will also need to follow the instructions on how to setup typeorm), now we can feed the driver into typeorm:
 
 ```ts
+import { typeORMDriver } from 'react-native-quick-sqlite'
+
 datasource = new DataSource({
   type: 'react-native',
   database: 'typeormdb',
   location: '.',
-  driver: require('react-native-quick-sqlite'),
-  entities: [Book, User],
+  driver: typeORMDriver,
+  entities: [...],
   synchronize: true,
 });
 ```
-
-If you are using Node 14+, TypeORM is currently broken with React Native. You can patch your node-modules installation and apply the fix [in this issue](https://github.com/typeorm/typeorm/issues/9178).
 
 # Loading existing DBs
 

@@ -1,78 +1,8 @@
-import {
-  QuickSQLite as sqlite,
-  open,
-  QuickSQLiteConnection,
-} from 'react-native-quick-sqlite';
 import { DataSource } from 'typeorm';
 import { Book } from './model/Book';
 import { User } from './model/User';
 // import { Buffer } from 'buffer';
 let datasource: DataSource;
-
-const DB_NAME = 'test';
-let db: QuickSQLiteConnection;
-
-export const lowLevelInit = () => {
-  try {
-    // Start by opening a connection
-    db = open({ name: DB_NAME });
-
-    // Creates a table in db
-    db.execute(
-      'CREATE TABLE IF NOT EXISTS "User" ( id INT PRIMARY KEY, name TEXT NOT NULL, age INT, networth FLOAT);'
-    );
-  } catch (e) {
-    console.warn('Error opening db:', e);
-  }
-};
-
-export const testTransaction = () => {
-  // sqlite.transaction('test', (tx) => {
-  //   tx.executeSql(
-  //     'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
-  //     [new Date().getMilliseconds(), `Jerry`, 45, 20.23]
-  //   );
-  //   console.warn('committing transaction');
-  //   // return true to commit transaction, false to revert
-  //   return true;
-  // });
-};
-
-export const testInsert = () => {
-  // Basic request
-  db.execute(
-    'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
-    [new Date().getMilliseconds(), `TOM`, 32, 3000.23]
-  );
-
-  return queryUsers();
-};
-
-export const testAsyncExecute = async () => {
-  await db.executeAsync(
-    'INSERT INTO "User" (id, name, age, networth) VALUES(?, ?, ?, ?);',
-    [new Date().getMilliseconds(), `Async TOM`, 32, 3000.23]
-  );
-
-  return queryUsers();
-};
-
-export const testFailedAsync = async () => {
-  try {
-    await db.executeAsync(
-      'INSERT INTO "BLAH" (id, name, age, networth) VALUES(?, ?, ?, ?);',
-      [new Date().getMilliseconds(), `Async TOM`, 32, 3000.23]
-    );
-  } catch (e) {
-    console.warn('ROPO failed execute Async', e);
-  }
-};
-
-export const queryUsers = () => {
-  const queryResult = db.execute(`SELECT * FROM "User"`);
-
-  return queryResult.rows?._array;
-};
 
 export async function typeORMInit() {
   datasource = new DataSource({

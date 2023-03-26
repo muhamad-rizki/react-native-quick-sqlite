@@ -58,7 +58,7 @@ int mkdir(const char *path)
   while (getline(ss, level, '/'))
   {
     current_level += level; // append folder to the current level
-    // create current level
+                            // create current level
     if (!folder_exists(current_level) && _mkdir(current_level.c_str()) != 0)
       return -1;
     
@@ -256,7 +256,7 @@ void bindStatement(sqlite3_stmt *statement, vector<QuickValue> *values)
 
 SQLiteOPResult sqliteExecute(string const dbName, string const &query, vector<QuickValue> *params, vector<map<string, QuickValue>> *results, vector<QuickColumnMetadata> *metadata)
 {
-  // Check if db connection is opened
+
   if (dbMap.count(dbName) == 0)
   {
     return SQLiteOPResult{
@@ -267,11 +267,9 @@ SQLiteOPResult sqliteExecute(string const dbName, string const &query, vector<Qu
   }
   
   sqlite3 *db = dbMap[dbName];
-  
-  // SQLite statements need to be compiled before executed
+
   sqlite3_stmt *statement;
-  
-  // Compile and move result into statement memory spot
+
   int statementStatus = sqlite3_prepare_v2(db, query.c_str(), -1, &statement, NULL);
   
   if (statementStatus == SQLITE_OK) // statemnet is correct, bind the passed parameters
@@ -305,19 +303,19 @@ SQLiteOPResult sqliteExecute(string const dbName, string const &query, vector<Qu
         {
           break;
         }
-        
+
         i = 0;
         row = map<string, QuickValue>();
         count = sqlite3_column_count(statement);
-        
+
         while (i < count)
         {
           column_type = sqlite3_column_type(statement, i);
           column_name = sqlite3_column_name(statement, i);
-          
+
           switch (column_type)
           {
-              
+
             case SQLITE_INTEGER:
             {
               /**
@@ -331,14 +329,12 @@ SQLiteOPResult sqliteExecute(string const dbName, string const &query, vector<Qu
               row[column_name] = createIntegerQuickValue(column_value);
               break;
             }
-              
             case SQLITE_FLOAT:
             {
               double column_value = sqlite3_column_double(statement, i);
               row[column_name] = createDoubleQuickValue(column_value);
               break;
             }
-              
             case SQLITE_TEXT:
             {
               const char *column_value = reinterpret_cast<const char *>(sqlite3_column_text(statement, i));
@@ -347,7 +343,6 @@ SQLiteOPResult sqliteExecute(string const dbName, string const &query, vector<Qu
               row[column_name] = createTextQuickValue(string(column_value, byteLen));
               break;
             }
-              
             case SQLITE_BLOB:
             {
               int blob_size = sqlite3_column_bytes(statement, i);
@@ -357,7 +352,6 @@ SQLiteOPResult sqliteExecute(string const dbName, string const &query, vector<Qu
               row[column_name] = createArrayBufferQuickValue(data, blob_size);
               break;
             }
-              
             case SQLITE_NULL:
               // Intentionally left blank to switch to default case
             default:
@@ -389,7 +383,6 @@ SQLiteOPResult sqliteExecute(string const dbName, string const &query, vector<Qu
         }
         isConsuming = false;
         break;
-        
       default:
         isFailed = true;
         isConsuming = false;
@@ -461,11 +454,11 @@ SequelLiteralUpdateResult sqliteExecuteLiteral(string const dbName, string const
       case SQLITE_ROW:
         isConsuming = true;
         break;
-        
+
       case SQLITE_DONE:
         isConsuming = false;
         break;
-        
+
       default:
         isFailed = true;
         isConsuming = false;
